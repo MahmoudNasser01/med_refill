@@ -1,0 +1,49 @@
+services:
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_HOST_AUTH_METHOD: trust  # Allow all connections without a password
+    ports:
+      - "5432:5432"
+    networks:
+      - mynetwork
+
+  backend:
+    build:
+      context: .
+    command: >
+      sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
+    environment:
+      - MED_REFILL_DB_HOST=db
+      - MED_REFILL_DB_NAME=mydb
+      - MED_REFILL_DB_USER=myuser
+      - MED_REFILL_DB_PASSWORD=mypassword
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - mynetwork
+
+
+  frontend:
+    build:
+      context: ./med_refill_front
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge
+
+volumes:
+  postgres_data:

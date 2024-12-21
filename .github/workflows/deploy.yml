@@ -1,0 +1,42 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Log in to GitHub Container Registry
+      run: |
+        echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+    - name: Build and push Docker images
+      run: |
+        docker build -t ghcr.io/mahmoudnasser01/demo/db:latest .
+        docker build -t ghcr.io/mahmoudnasser01/demo/backend:latest .
+        docker build -t ghcr.io/mahmoudnasser01/demo/frontend:latest ./med_refill_front
+        docker push ghcr.io/mahmoudnasser01/demo/db:latest
+        docker push ghcr.io/mahmoudnasser01/demo/backend:latest
+        docker push ghcr.io/mahmoudnasser01/demo/frontend:latest
+
+#    - name: Deploy to EC2
+#      uses: appleboy/ssh-action@v0.1.5
+#      with:
+#        host: ${{ secrets.EC2_HOST }}
+#        username: ${{ secrets.EC2_USER }}
+#        key: ${{ secrets.EC2_KEY }}
+#        port: 22
+#        script: |
+#          sudo docker login ghcr.io -u ${{ github.actor }} -p "${{ secrets.GHCR_PAT }}"
+#          sudo docker pull ghcr.io/${{ github.repository }}/db:latest
+#          sudo docker pull ghcr.io/${{ github.repository }}/backend:latest
+#          sudo docker pull ghcr.io/${{ github.repository }}/frontend:latest
+#          docker-compose -f /path/to/your/docker-compose.yml up -d
