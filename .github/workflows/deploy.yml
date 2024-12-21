@@ -17,7 +17,7 @@ jobs:
 
     - name: Log in to GitHub Container Registry
       run: |
-        echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        echo ${{ secrets.ACCESS_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
     - name: Build and push Docker images
       run: |
         docker build -t ghcr.io/mahmoudnasser01/demo/db:latest .
